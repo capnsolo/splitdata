@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# splitdata
+#
+# usage: run in a directory structured for CoreML training (i.e. data is sorted
+# into subdirectories named with the data's classification label). When run in
+# DIRNAME, will create a sibling split_DIRNAME with data split into `train` and
+# `test` directories each separated into the appropriate labeled subdirectories.
+# Currently splits data 80/20.
+#
+
+DATANAME="${PWD##*/}"
+
+pushd . > /dev/null
+cd ..
+
+HOME="$(pwd)"
+TESTDIR="split_${DATANAME}/test"
+TRAINDIR="split_${DATANAME}/train"
+
+mkdir -p "$TESTDIR" > /dev/null
+mkdir -p "$TRAINDIR" > /dev/null
+
+popd > /dev/null
+
+for LABEL in */; do
+  pushd . > /dev/null
+  cd "$LABEL"
+
+  # todo: support other file formats
+  for IMAGE in *.png; do
+    SEGMENT=$((1 + RANDOM % 10))
+
+    # todo: support alternate splits?
+    if [ "$SEGMENT" -gt 8 ]; then
+      DESTINATION="$HOME/$TESTDIR/$LABEL/"
+    else
+      DESTINATION="$HOME/$TRAINDIR/$LABEL/"
+    fi
+
+    if [ ! -d "$DESTINATION" ]; then
+      mkdir "$DESTINATION"
+    fi
+
+    cp "$IMAGE" "$DESTINATION"
+  done
+
+  popd > /dev/null
+done
